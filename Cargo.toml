@@ -1,0 +1,11 @@
+[package]
+name = "try-nickel"
+version = "0.1.0"
+authors = ["TAHARA Yoshinori <read.eval.print@gmail.com>"]
+
+[dependencies]
+mustache = "*"
+nickel_mustache = "*"
+nickel = "*"
+rustc-serialize = "*"
+mysql = "*"
