@@ -57,7 +57,28 @@ fn main() {
         };
         let pool = MyPool::new(opts).unwrap();
 
-        let result = pool.prep_exec("select id, name from regions", ()).unwrap();
+        data = data.insert_vec("regions", |builder| {
+            let mut builder = builder;
+            let result = pool.prep_exec("select id, name from regions", ()).unwrap();
+            for row in result {
+                let row = row.unwrap();
+                let (id, name) = from_row::<(i32, String)>(row);
+                builder = builder.push(&Region { id: id, name: name }).ok().unwrap();
+            }
+            builder
+        });
+
+
+        let regions: Vec<Region> =
+            pool.prep_exec("select id, name from regions", ()).map(|result| {
+                result.map(|x| x.unwrap()).map(|row| {
+                    let (id, name) = from_row::<(i32, String)>(row);
+                    Region { id: id, name: name }
+                }).collect()
+            }).unwrap();
+        data = data.insert("region-list", &regions).ok().unwrap();
+
+        /*
         for row in result {
             let row = row.unwrap();
             println!("{:?}, {:?}", row[0], row[1]);
@@ -69,6 +90,7 @@ fn main() {
             });
             data = data.insert("region", &Region { id: id, name: name }).ok().unwrap()
         }
+         */
 
         return response.render_data_with_layout("assets/main",
                                                 "assets/layout",
