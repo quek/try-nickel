@@ -33,6 +33,12 @@ fn test_mysql() {
     }
 }
 
+#[derive(RustcEncodable)]
+struct Region {
+    id: i32,
+    name: String,
+}
+
 fn main() {
     let mut server = Nickel::new();
 
@@ -51,7 +57,7 @@ fn main() {
         };
         let pool = MyPool::new(opts).unwrap();
 
-        let result = pool.prep_exec("select id, name from regions limit 1", ()).unwrap();
+        let result = pool.prep_exec("select id, name from regions", ()).unwrap();
         for row in result {
             let row = row.unwrap();
             println!("{:?}, {:?}", row[0], row[1]);
@@ -61,6 +67,7 @@ fn main() {
                 builder.insert("id", &id).ok().unwrap().
                     insert("name", &name).ok().unwrap()
             });
+            data = data.insert("region", &Region { id: id, name: name }).ok().unwrap()
         }
 
         return response.render_data_with_layout("assets/main",
