@@ -70,12 +70,17 @@ fn main() {
 
 
         let regions: Vec<Region> =
-            pool.prep_exec("select id, name from regions", ()).map(|result| {
-                result.map(|x| x.unwrap()).map(|row| {
-                    let (id, name) = from_row::<(i32, String)>(row);
-                    Region { id: id, name: name }
-                }).collect()
-            }).unwrap();
+            pool.prep_exec("select id, name from regions order by id desc", ()).unwrap().map(|row| {
+                let (id, name) = from_row::<(i32, String)>(row.unwrap());
+                Region { id: id, name: name }
+            }).collect();
+
+//            pool.prep_exec("select id, name from regions", ()).map(|result| {
+//                result.map(|x| x.unwrap()).map(|row| {
+//                    let (id, name) = from_row::<(i32, String)>(row);
+//                    Region { id: id, name: name }
+//                }).collect()
+//            }).unwrap();
         data = data.insert("region-list", &regions).ok().unwrap();
 
         /*
