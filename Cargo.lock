@@ -6,7 +6,9 @@ dependencies = [
  "mysql 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "nickel 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "nickel_mustache 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
+ "typemap 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
