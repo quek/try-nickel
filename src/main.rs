@@ -1,65 +1,20 @@
 #[macro_use] extern crate nickel;
-extern crate mysql;
 extern crate mustache;
 extern crate nickel_mustache;   // https://github.com/Ryman/nickel-mustache
 extern crate rustc_serialize;
 extern crate plugin;
 extern crate typemap;
-
-use std::sync::Arc;
+extern crate mysql;
 
 use nickel_mustache::Render;
-use nickel::{HttpRouter, Middleware, MiddlewareResult, Nickel, Request, Response};
-
-use typemap::Key;
-use plugin::{Pluggable, Extensible};
+use nickel::{HttpRouter, Nickel};
 
 use mustache::MapBuilder;
 
-use mysql::conn::MyOpts;
-use mysql::conn::pool::MyPool;
-use mysql::value::from_row;
+use mysql::{from_row};
+use my_pool::MyPoolRequestExtensions;
 
-struct MyPoolMiddleware {
-    pool: Arc<MyPool>,
-}
-
-impl MyPoolMiddleware {
-    fn new() -> MyPoolMiddleware {
-        let opts = MyOpts {
-            user: Some("root".to_string()),
-            pass: Some("".to_string()),
-            db_name: Some("outing_r3_development".to_string()),
-            ..Default::default()
-        };
-        let pool = MyPool::new(opts).unwrap();
-        MyPoolMiddleware { pool: Arc::new(pool) }
-    }
-}
-
-impl Key for MyPoolMiddleware { type Value = Arc<MyPool>; }
-
-impl<D> Middleware<D> for MyPoolMiddleware {
-    fn invoke<'mw, 'conn>(&self,
-                          req: &mut Request<'mw, 'conn, D>,
-                          res: Response<'mw, D>)
-                          -> MiddlewareResult<'mw, D> {
-        req.extensions_mut().insert::<MyPoolMiddleware>(self.pool.clone());
-        res.next_middleware()
-    }
-}
-
-pub trait MyPoolRequestExtensions {
-    fn db(&self) -> &MyPool;
-}
-
-impl<'a, 'b, D> MyPoolRequestExtensions for Request<'a, 'b, D> {
-    fn db(&self) -> &MyPool {
-        let arc = self.extensions().get::<MyPoolMiddleware>().unwrap();
-        &**arc
-    }
-}
-
+mod my_pool;
 
 #[derive(RustcEncodable)]
 struct Region {
@@ -70,7 +25,7 @@ struct Region {
 fn main() {
     let mut server = Nickel::new();
 
-    let my_pool_middleware = MyPoolMiddleware::new();
+    let my_pool_middleware = my_pool::MyPoolMiddleware::new();
     server.utilize(my_pool_middleware);
 
     server.get("/", middleware!{ |request, response|
