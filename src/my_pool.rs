@@ -15,14 +15,11 @@ pub struct MyPoolMiddleware {
 
 impl MyPoolMiddleware {
     pub fn new() -> MyPoolMiddleware {
-        let opts = Opts {
-            user: env::var("DB_USER").or::<String>(Ok("root".to_string())).ok(),
-            pass: env::var("DB_PASS").or::<String>(Ok("".to_string())).ok(),
-            db_name: env::var("DB_NAME").or::<String>(Ok("outing_development".to_string())).ok(),
-            unix_addr: Some(PathBuf::from("/run/mysqld/mysqld5.6.sock")),
-            ..Default::default()
+        let url = match env::var("DB_URL") {
+            Ok(val) => val,
+            Err(_) => "mysql://root:@localhost:3307/outing_development".to_string(),
         };
-        let pool = Pool::new(opts).unwrap();
+        let pool = Pool::new(Opts::from_url(&url).unwrap()).unwrap();
         MyPoolMiddleware { pool: Arc::new(pool) }
     }
 }
