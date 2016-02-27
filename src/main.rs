@@ -11,7 +11,7 @@ use nickel::{HttpRouter, Nickel};
 
 use mustache::MapBuilder;
 
-use mysql::{from_row};
+use mysql::from_row;
 use my_pool::MyPoolRequestExtensions;
 
 mod my_pool;

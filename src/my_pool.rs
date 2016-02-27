@@ -2,7 +2,6 @@ extern crate mysql;
 
 use std::env;
 use std::sync::Arc;
-use std::path::PathBuf;
 use mysql::{Pool, Opts};
 use typemap::Key;
 use nickel::{HttpRouter, Middleware, MiddlewareResult, Request, Response};
@@ -27,22 +26,22 @@ impl MyPoolMiddleware {
 impl Key for MyPoolMiddleware { type Value = Arc<Pool>; }
 
 impl<D> Middleware<D> for MyPoolMiddleware {
-    fn invoke<'mw, 'conn>(&self,
-                          req: &mut Request<'mw, 'conn, D>,
-                          res: Response<'mw, D>)
-                          -> MiddlewareResult<'mw, D> {
+    fn invoke<'mw, 'conn>(
+        &self,
+        req: &mut Request<'mw, 'conn, D>,
+        res: Response<'mw, D>
+    ) -> MiddlewareResult<'mw, D> {
         req.extensions_mut().insert::<MyPoolMiddleware>(self.pool.clone());
         res.next_middleware()
     }
 }
 
 pub trait MyPoolRequestExtensions {
-    fn db(&self) -> &Pool;
+    fn db(&self) -> &Arc<Pool>;
 }
 
 impl<'a, 'b, D> MyPoolRequestExtensions for Request<'a, 'b, D> {
-    fn db(&self) -> &Pool {
-        let arc = self.extensions().get::<MyPoolMiddleware>().unwrap();
-        &**arc
+    fn db(&self) -> &Arc<Pool> {
+        self.extensions().get::<MyPoolMiddleware>().unwrap()
     }
 }
